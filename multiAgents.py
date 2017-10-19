@@ -47,8 +47,12 @@ class ReflexAgent(Agent):
         bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
         chosenIndex = random.choice(bestIndices) # Pick randomly among the best
 
-        "Add more of your code here if you want to"
+        # print("Next move: ")
+        # print(legalMoves[chosenIndex])
 
+        "Add more of your code here if you want to"
+        print ("Action chosen based on eval func: %s") % (legalMoves[chosenIndex])
+        print ("--------------------------------------------------------")
         return legalMoves[chosenIndex]
 
     def evaluationFunction(self, currentGameState, action):
@@ -67,17 +71,64 @@ class ReflexAgent(Agent):
         to create a masterful evaluation function.
         """
         # Useful information you can extract from a GameState (pacman.py)
+        result = 0
         successorGameState = currentGameState.generatePacmanSuccessor(action)
         newPos = successorGameState.getPacmanPosition()
-        newFood = successorGameState.getFood()
+        newFood = successorGameState.getFood().asList()
+        oldFood = currentGameState.getFood().asList()
         newGhostStates = successorGameState.getGhostStates()
+        currentGhostStates = currentGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+        previous_game_score = currentGameState.getScore()
+        new_game_score = successorGameState.getScore()
 
-        print(newPos)
+
+        # In order to win Pacman we should focus on two things:
+        #    1. Staying alive by running away from ghosts
+        #    2. Eating the dots to win the game
+        # My algorithm will focus on these two
+
+        # First let's find how close a ghost is to this new position
+        # The furthest away the ghost is from newPos, the higher the total score
+
+        previous_ghost_nearby_score = 0
+        for ghost in currentGhostStates:
+            ghost_nearby_mdistance = manhattanDistance(ghost.getPosition(), newPos)
+            previous_ghost_nearby_score += ghost_nearby_mdistance
+
+        new_ghost_nearby_score = 0
+        for ghost in newGhostStates:
+            ghost_nearby_mdistance = manhattanDistance(ghost.getPosition(), newPos)
+            new_ghost_nearby_score += ghost_nearby_mdistance
+
+            # We want to go where there is more food
+        previous_food_nearby_score = 0
+        for food in oldFood:
+            food_mdistance = manhattanDistance(food, newPos)
+            previous_food_nearby_score += food_mdistance
 
 
-        "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        # We want to go where there is more food
+        new_food_nearby_score = 0
+        for food in newFood:
+            food_mdistance = manhattanDistance(food, newPos)
+            new_food_nearby_score += food_mdistance
+
+        result += new_food_nearby_score
+
+        # We don't want to get close to the ghost so let's run away if they are closer than 3 dots
+        if new_ghost_nearby_score <= 3 and new_ghost_nearby_score > previous_ghost_nearby_score:
+            result -= 1000
+
+        if new_game_score < previous_game_score:
+            result -= 10
+
+        if new_food_nearby_score > previous_food_nearby_score:
+            result -= 20
+        else:
+            result += 20
+
+        return result
 
 def scoreEvaluationFunction(currentGameState):
     """
