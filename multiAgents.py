@@ -81,6 +81,8 @@ class ReflexAgent(Agent):
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
         previous_game_score = currentGameState.getScore()
         new_game_score = successorGameState.getScore()
+        previous_num_of_food = currentGameState.getNumFood()
+        new_num_of_food = successorGameState.getNumFood()
 
 
         # In order to win Pacman we should focus on two things:
@@ -112,9 +114,7 @@ class ReflexAgent(Agent):
             new_food_nearby_scores.append(food_mdistance)
 
         # We want to go where there is more food
-        if min(new_food_nearby_scores) < min(previous_food_nearby_scores):
-            result -= 100
-        else:
+        if len(new_food_nearby_scores) > 0 and len(previous_food_nearby_scores) > 0 and min(new_food_nearby_scores) > min(previous_food_nearby_scores):
             result += 100
 
         if new_game_score < previous_game_score:
@@ -122,11 +122,14 @@ class ReflexAgent(Agent):
         else:
             result += 10
 
+        if new_num_of_food < previous_num_of_food:
+            result += 15
+
         # If there is a ghost close, RUN AWAY!!!
         if new_ghost_nearby_score <= 3:
             result -= 1000
 
-        print ("Result for action: %s is : %s") % (action,result)
+        print ("Result for action: %s is : %s") % (action, result)
 
         return result
 
