@@ -101,32 +101,32 @@ class ReflexAgent(Agent):
             ghost_nearby_mdistance = manhattanDistance(ghost.getPosition(), newPos)
             new_ghost_nearby_score += ghost_nearby_mdistance
 
-            # We want to go where there is more food
-        previous_food_nearby_score = 0
+        previous_food_nearby_scores = []
         for food in oldFood:
             food_mdistance = manhattanDistance(food, newPos)
-            previous_food_nearby_score += food_mdistance
+            previous_food_nearby_scores.append(food_mdistance)
 
-
-        # We want to go where there is more food
-        new_food_nearby_score = 0
+        new_food_nearby_scores = []
         for food in newFood:
             food_mdistance = manhattanDistance(food, newPos)
-            new_food_nearby_score += food_mdistance
+            new_food_nearby_scores.append(food_mdistance)
 
-        result += new_food_nearby_score
-
-        # We don't want to get close to the ghost so let's run away if they are closer than 3 dots
-        if new_ghost_nearby_score <= 3 and new_ghost_nearby_score > previous_ghost_nearby_score:
-            result -= 1000
+        # We want to go where there is more food
+        if min(new_food_nearby_scores) < min(previous_food_nearby_scores):
+            result -= 100
+        else:
+            result += 100
 
         if new_game_score < previous_game_score:
             result -= 10
-
-        if new_food_nearby_score > previous_food_nearby_score:
-            result -= 20
         else:
-            result += 20
+            result += 10
+
+        # If there is a ghost close, RUN AWAY!!!
+        if new_ghost_nearby_score <= 3:
+            result -= 1000
+
+        print ("Result for action: %s is : %s") % (action,result)
 
         return result
 
